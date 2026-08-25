@@ -44,7 +44,12 @@ SECRET_KEY = 'django-insecure-$925+a1t)uj+$pnd%dyx^lxegpmp+7i&7izbyw=ercvm_41kh9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'kinyona-backend.onrender.com',
+    '.onrender.com',
+    '127.0.0.1',
+    'localhost',
+]
 
 
 # Application definition
