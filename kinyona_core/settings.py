@@ -42,7 +42,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-$925+a1t)uj+$pnd%dyx^lxegpmp+7i&7izbyw=ercvm_41kh9'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'kinyona-backend.onrender.com',
