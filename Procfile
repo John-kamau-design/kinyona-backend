@@ -1,1 +1,1 @@
-web: gunicorn KLC.1.wsgi:application 
+web: gunicorn kinyona_core.wsgi:application 
