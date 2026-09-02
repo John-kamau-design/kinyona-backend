@@ -1,3 +1,10 @@
+// Add this at the top of android/build.gradle.kts:
+gradle.projectsEvaluated {
+    tasks.withType(com.android.build.gradle.tasks.ExtractAnnotations::class.java) {
+        enabled = false
+    }
+}
+
 allprojects {
     repositories {
         google()
