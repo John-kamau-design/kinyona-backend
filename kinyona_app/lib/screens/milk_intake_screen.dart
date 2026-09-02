@@ -105,7 +105,7 @@ class _MilkIntakeScreenState extends State<MilkIntakeScreen> {
       };
 
       final response = await http.post(
-        Uri.parse('$baseUrl/intake/logs/'),
+        Uri.parse('$baseUrl/intake/sync/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

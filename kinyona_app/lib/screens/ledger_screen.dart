@@ -13,7 +13,7 @@ class LedgerScreen extends StatefulWidget {
 
 class _LedgerScreenState extends State<LedgerScreen> {
   final String ledgerUrl =
-      "https://kinyona-backend.onrender.com/api/v1/ledger/";
+      "https://kinyona-backend.onrender.com/api/v1/payouts/generate/";
   final String creditIssueUrl =
       "https://kinyona-backend.onrender.com/api/v1/agrovet/issue/";
 

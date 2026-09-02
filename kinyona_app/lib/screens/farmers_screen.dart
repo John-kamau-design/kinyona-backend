@@ -13,7 +13,7 @@ class FarmersScreen extends StatefulWidget {
 
 class _FarmersScreenState extends State<FarmersScreen> {
   final String farmersUrl =
-      "https://kinyona-backend.onrender.com/api/v1/farmers/";
+      "https://kinyona-backend.onrender.com/api/v1/auth/farmers/";
 
   List<dynamic> _farmers = [];
   List<dynamic> _filteredFarmers = [];
