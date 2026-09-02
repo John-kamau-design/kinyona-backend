@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kinyona.settings')  # Replace 'kinyona' with your Django project package name
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kinyona_core.settings')  # Replace 'kinyona' with your Django project package name
 
 django.setup()
 
