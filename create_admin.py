@@ -1,7 +1,8 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kinyona_core.settings')  # Replace 'kinyona' with your Django project package name
+# Set Django settings module using your 'kinyona_core' package
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kinyona_core.settings')
 
 django.setup()
 
@@ -9,15 +10,24 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 username = "John073"
-password = "Kinyona#2026!Wx7"
+raw_password = "Kinyona#2026!Wx7"
 
-if not User.objects.filter(username=username).exists():
-    user = User.objects.create_superuser(username=username, password=password, email="")
+# Retrieve existing user or create a new instance
+user, created = User.objects.get_or_create(username=username)
+
+# Set and properly hash password for Django authentication
+user.set_password(raw_password)
+
+# Assign administrative access and roles
+user.is_staff = True
+user.is_superuser = True
+
+if hasattr(user, 'role'):
     user.role = "MANAGER"
-    user.save()
+
+user.save()
+
+if created:
     print("Admin user John073 created successfully!")
 else:
-    user = User.objects.get(username=username)
-    user.role = "MANAGER"
-    user.save()
-    print("Admin user John073 already exists - role updated to MANAGER!")
+    print("Admin user John073 password and MANAGER role updated successfully!")
