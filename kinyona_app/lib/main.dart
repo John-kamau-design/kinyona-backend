@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String _errorMessage = '';
 
   final String loginUrl =
-      "https://kinyona-backend.onrender.com/api/v1/auth/login/";
+      "https://kinyona-backend.onrender.com/api/v1/auth/token/";
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
