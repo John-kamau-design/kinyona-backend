@@ -40,3 +40,9 @@ class FarmerListView(ListCreateAPIView):
     def perform_create(self, serializer):
         # Automatically assign role='FARMER' when creating a new farmer record
         serializer.save(role='FARMER')
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

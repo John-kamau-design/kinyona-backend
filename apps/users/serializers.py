@@ -26,3 +26,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             phone_number=validated_data.get('phone_number', '')
         )
         return user
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # Add custom fields to the response payload for Flutter
+        data['username'] = self.user.username
+        data['role'] = getattr(self.user, 'role', 'MANAGER')
+        data['user_id'] = str(self.user.id)
+        return data
