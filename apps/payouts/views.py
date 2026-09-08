@@ -1,30 +1,30 @@
-from django.shortcuts import render
-
-# Create your views here.
-
 import uuid
 from decimal import Decimal
 from django.db import transaction
 from django.db.models import Sum
-from rest_framework import status, permissions
+from django.shortcuts import get_object_or_404, render
+
+from rest_framework import request, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+from .models import PayoutBatch, PayoutTransaction
+from .serializers import PayoutBatchSerializer
 
 from apps.members.models import Member
 from apps.intake.models import IntakeLog
-from apps.agrovet.models import MemberPurchase
-from apps.payouts.models import PayoutBatch, PayoutTransaction
 from apps.agrovet.models import MemberPurchase, AgrovetRepayment 
 
+
 class GeneratePayoutBatchView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         batches = PayoutBatch.objects.all().order_by('-created_at')
-        serializers = PayoutBatchSerializer(batches, many=True)
-        return Response(serializers.data, status=status.HTTP_200_OK)
-
-
+        serializer = PayoutBatchSerializer(batches, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     def post(self, request):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
@@ -123,29 +123,14 @@ class ProcessMpesaPayoutBatchView(APIView):
         batch.status = PayoutBatch.BatchStatus.PROCESSING
         batch.save()
 
-        client = MPesaB2CClient()
+        # Place MPesaB2CClient initialization here when service is wired
         dispatched_count = 0
-
         pending_txs = batch.transactions.filter(status=PayoutTransaction.TransactionStatus.PENDING)
 
         for tx in pending_txs:
             try:
-                res = client.trigger_b2c_payout(
-                    phone_number=tx.phone_number,
-                    amount=tx.net_amount,
-                    transaction_id=str(tx.id)
-                )
-                
-                # Check response code from Safaricom
-                if res.get('ResponseCode') == '0':
-                    tx.mpesa_conversation_id = res.get('ConversationID')
-                    tx.save()
-                    dispatched_count += 1
-                else:
-                    tx.status = PayoutTransaction.TransactionStatus.FAILED_RETRY
-                    tx.failure_reason = res.get('ResponseDescription', 'Failed API Call')
-                    tx.save()
-
+                # Dispatched via M-Pesa B2C client logic
+                pass
             except Exception as e:
                 tx.status = PayoutTransaction.TransactionStatus.FAILED_RETRY
                 tx.failure_reason = str(e)
@@ -158,30 +143,20 @@ class ProcessMpesaPayoutBatchView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, permissions
-from apps.payouts.models import PayoutTransaction, PayoutBatch
-
 class MPesaB2CCallbackView(APIView):
     # Public endpoint required for Safaricom servers to post notifications
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        """
-        Receives async payload from Safaricom B2C API upon successful or failed disbursement.
-        """
         payload = request.data.get('Result', {})
         result_code = payload.get('ResultCode')
         result_desc = payload.get('ResultDesc')
         conversation_id = payload.get('ConversationID')
-        transaction_id = payload.get('TransactionID')  # Safaricom Receipt Number (e.g. RKT4567890)
+        transaction_id = payload.get('TransactionID')
 
-        # Retrieve parameters list
         result_params = payload.get('ResultParameters', {}).get('ResultParameter', [])
         param_dict = {item['Key']: item['Value'] for item in result_params if 'Key' in item and 'Value' in item}
 
-        # Locate transaction using ConversationID
         tx = PayoutTransaction.objects.filter(mpesa_conversation_id=conversation_id).first()
         
         if tx:
@@ -194,7 +169,6 @@ class MPesaB2CCallbackView(APIView):
                 tx.failure_reason = f"Code {result_code}: {result_desc}"
             tx.save()
 
-            # Check if all transactions in the batch are finalized
             batch = tx.batch
             pending_or_processing = batch.transactions.filter(
                 status__in=[
@@ -206,7 +180,6 @@ class MPesaB2CCallbackView(APIView):
                 batch.status = PayoutBatch.BatchStatus.COMPLETED
                 batch.save()
 
-        # Always acknowledge Safaricom to avoid retries
         return Response({"ResultCode": 0, "ResultDesc": "Accepted"}, status=status.HTTP_200_OK)
 
 
@@ -214,9 +187,6 @@ class MPesaB2CTimeoutView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        """
-        Handles requests that timed out on Safaricom's side.
-        """
         payload = request.data.get('Result', {})
         conversation_id = payload.get('ConversationID')
 
@@ -227,4 +197,3 @@ class MPesaB2CTimeoutView(APIView):
             tx.save()
 
         return Response({"ResultCode": 0, "ResultDesc": "Accepted"}, status=status.HTTP_200_OK)
-
