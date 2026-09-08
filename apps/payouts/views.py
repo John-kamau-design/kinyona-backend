@@ -19,6 +19,11 @@ from apps.agrovet.models import MemberPurchase, AgrovetRepayment
 class GeneratePayoutBatchView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
+    def get(self, request):
+        batches = PayoutBatch.objects.all().order_by('-created_at')
+        serializers = PayoutBatchSerializer(batches, many=True)
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
     @transaction.atomic
     def post(self, request):
         start_date = request.data.get('start_date')

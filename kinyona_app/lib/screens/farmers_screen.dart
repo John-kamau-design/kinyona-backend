@@ -44,9 +44,15 @@ class _FarmersScreenState extends State<FarmersScreen> {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final dynamic data = jsonDecode(response.body);
         setState(() {
-          _farmers = data is List ? data : (data['results'] ?? []);
+          if (data is List) {
+            _farmers = data;
+          } else if (data is Map && data.containsKey('results')) {
+            _farmers = data['results'];
+          } else {
+            _farmers = [];
+          }
         });
       } else {
         setState(() {
@@ -58,9 +64,11 @@ class _FarmersScreenState extends State<FarmersScreen> {
         _errorMessage = 'Connection failed. Check network or server.';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
